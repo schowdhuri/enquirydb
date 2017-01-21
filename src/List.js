@@ -38,9 +38,17 @@ class List extends Component {
           </Navbar.Header>
           <Nav className="pull-right">
             <NavItem eventKey={1}>
+              <i className="glyphicon glyphicon-folder-open" />
+              Import
+            </NavItem>
+            <NavItem eventKey={2}>
+              <i className="glyphicon glyphicon-download-alt" />
+              Export
+            </NavItem>
+            <NavItem eventKey={3}>
               <Link className="nav-link" to="add">
                 <i className="glyphicon glyphicon-plus" />
-                {" "}New record
+                Add record
               </Link>
             </NavItem>
           </Nav>

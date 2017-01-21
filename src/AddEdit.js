@@ -54,6 +54,7 @@ class AddEdit extends Component {
 		}, {});
 		this.loadDB = this.loadDB.bind(this);
 		this.handleChangeValue = this.handleChangeValue.bind(this);
+		this.handleDelete = this.handleDelete.bind(this);
 		this.handleSave = this.handleSave.bind(this);
 	}
 	componentWillMount() {
@@ -94,6 +95,20 @@ class AddEdit extends Component {
 			});
 		}
 	}
+	handleDelete() {
+		let savedData = JSON.parse(window.localStorage.getItem("enquiries") || "[]");
+		if(savedData instanceof Array) {
+			const index = savedData.findIndex(r => r.ref===this.state.ref);
+			if(index >= 0) {
+				savedData = [
+					...savedData.slice(0, index),
+					...savedData.slice(index + 1)
+				];
+			}
+		}
+		window.localStorage.setItem("enquiries", JSON.stringify(savedData));
+		browserHistory.push("/");
+	}
 	handleSave() {
 		const record = FIELDS.reduce((p, c) => {
 			if(c.toLowerCase().indexOf("date")>=0) {
@@ -130,7 +145,7 @@ class AddEdit extends Component {
       	<Nav className="pull-left">
 		      <NavItem eventKey={1}>
             <Link className="nav-link" to="/">
-            	<i className="glyphicon glyphicon-menu-left" />
+            	<i className="glyphicon glyphicon-home" />
             </Link>
           </NavItem>
         </Nav>
@@ -138,7 +153,14 @@ class AddEdit extends Component {
 		      <Navbar.Brand>New Record</Navbar.Brand>
 		    </Navbar.Header>
 		    <Nav className="pull-right">
-		      <NavItem eventKey={2} onClick={this.handleSave}>SAVE</NavItem>
+		      {this.state.ref ? <NavItem eventKey={2} onClick={this.handleDelete}>
+		      	<i className="glyphicon glyphicon-trash" />
+		      	Delete
+	      	</NavItem> : null}
+	      	<NavItem eventKey={2} onClick={this.handleSave}>
+		      	<i className="glyphicon glyphicon-ok" />
+		      	Save
+	      	</NavItem>
 		    </Nav>
 		  </Navbar>
       <div className="container">

@@ -11,3 +11,10 @@ a.nav-link:hover {
 	color: rgba(255,255,255, 0.84);
 	text-decoration: none;
 }
+.navbar-brand {
+	font-weight: 400;
+}
+.navbar .glyphicon {
+	font-size: 1.2rem;
+	margin-right: 10px;
+}
