@@ -1,0 +1,12 @@
+.List .container .well {
+	padding: 30px 0;
+}
+.List .table th {
+	font-weight: 500;
+}
+.List .client-name {
+	max-width: 225px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
