@@ -1,0 +1,41 @@
+export const FIELDS = [
+	"ref",
+	"clientName",
+	"enquiryDate",
+	"paxNum",
+	"contactPerson",
+	"arrivalDate",
+	"departureDate",
+	"pickup",
+	"drop",
+	"mode",
+	"destination",
+	"hotel",
+	"mealPlan",
+	"transport",
+	"inclusions",
+	"exclusions",
+	"extra",
+	"remarks"
+];
+
+export const READABLE_FIELDS = [
+	"Ref No",
+	"Client Name",
+	"Enquiry Date",
+	"No. of Pax",
+	"Contact Person",
+	"Arrival Date",
+	"Departure Date",
+	"Pickup",
+	"Drop",
+	"Mode",
+	"Destination",
+	"Hotel",
+	"Meal Plan",
+	"Transport",
+	"Inclusions",
+	"Exclusions",
+	"Extra",
+	"Remarks"
+];

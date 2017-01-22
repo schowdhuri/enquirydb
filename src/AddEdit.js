@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
-import { browserHistory, Link } from "react-router";
+import ReactDOM from "react-dom";
+import { browserHistory } from "react-router";
 import DatePicker from 'react-datepicker';
 import moment from "moment";
-import shortId from "shortid";
 import {
-	Button,
-	ButtonToolbar,
   Col,
   ControlLabel,
   Form,
@@ -18,29 +16,12 @@ import {
   Well
 } from "react-bootstrap";
 
+import { FIELDS } from "./constants";
+import db from "./DB";
+import Alert from "./Alert";
+
 import "react-datepicker/dist/react-datepicker.css";
 import "./Add.css";
-
-const FIELDS = [
-	"ref",
-	"clientName",
-	"enquiryDate",
-	"paxNum",
-	"contactPerson",
-	"arrivalDate",
-	"departureDate",
-	"pickup",
-	"drop",
-	"mode",
-	"destination",
-	"hotel",
-	"mealPlan",
-	"transport",
-	"inclusions",
-	"exclusions",
-	"extra",
-	"remarks"
-];
 
 class AddEdit extends Component {
 	constructor(props) {
@@ -51,11 +32,15 @@ class AddEdit extends Component {
 				...p,
 				[c]: ""
 			};
-		}, {});
+		}, {
+			isValid: false,
+			validationMessage: ""
+		});
 		this.loadDB = this.loadDB.bind(this);
 		this.handleChangeValue = this.handleChangeValue.bind(this);
 		this.handleDelete = this.handleDelete.bind(this);
 		this.handleSave = this.handleSave.bind(this);
+		this.navigateToList = this.navigateToList.bind(this);
 	}
 	componentWillMount() {
 		if(this.props.params && this.props.params.id)
@@ -65,10 +50,8 @@ class AddEdit extends Component {
 		if(nextProps.params && nextProps.id)
 			this.loadDB(this.props.params.id);
 	}
-	loadDB(id) {
-		const savedData = JSON.parse(window.localStorage.getItem("enquiries") || "[]");
-		if(savedData instanceof Array) {
-			const record = savedData.find(r => r.ref === id);
+	loadDB(ref) {
+		db.read(ref).then(record => {
 			const data = FIELDS.reduce((p, c) => {
 				if(c.toLowerCase().indexOf("date")>=0) {
 					return {
@@ -82,7 +65,7 @@ class AddEdit extends Component {
 				};
 			}, {});
 			this.setState(data);
-		}
+		});
 	}
 	handleChangeValue(e, key) {
 		if(key.toLowerCase().indexOf("date")>=0) {
@@ -96,20 +79,25 @@ class AddEdit extends Component {
 		}
 	}
 	handleDelete() {
-		let savedData = JSON.parse(window.localStorage.getItem("enquiries") || "[]");
-		if(savedData instanceof Array) {
-			const index = savedData.findIndex(r => r.ref===this.state.ref);
-			if(index >= 0) {
-				savedData = [
-					...savedData.slice(0, index),
-					...savedData.slice(index + 1)
-				];
-			}
-		}
-		window.localStorage.setItem("enquiries", JSON.stringify(savedData));
-		browserHistory.push("/");
+		if(confirm("Are you sure you want to permanently delete this record?"))
+			db.delete(this.state.ref).then(() => {
+				browserHistory.push("/");
+			});
 	}
 	handleSave() {
+		const formNode = ReactDOM.findDOMNode(this.form);
+		const isValid = formNode.checkValidity();
+		if(!isValid) {
+			this.setState({
+				isValid,
+				validationMessage: "Please fill all required fields"
+			});
+			return;
+		}
+		this.setState({
+			isValid,
+			validationMessage: ""
+		});
 		const record = FIELDS.reduce((p, c) => {
 			if(c.toLowerCase().indexOf("date")>=0) {
 				return {
@@ -122,31 +110,25 @@ class AddEdit extends Component {
 				[c]: this.state[c]
 			};
 		}, {});
-		record.ref = record.ref || shortId.generate().toUpperCase() + moment().format("YYYY");
-		let savedData = JSON.parse(window.localStorage.getItem("enquiries") || "[]");
-		if(!(savedData instanceof Array))
-			savedData = [];
-		const index = savedData.findIndex(r => r.ref===record.ref);
-		if(index >= 0) {
-			savedData = [
-				...savedData.slice(0, index),
-				record,
-				...savedData.slice(index + 1)
-			];
+		let saved;
+		if(record.ref) {
+			saved = db.update(record);
 		} else {
-			savedData.push(record);
+			saved = db.save(record);
 		}
-		window.localStorage.setItem("enquiries", JSON.stringify(savedData));
-		browserHistory.push("/");
+		saved.then(() => {
+			this.navigateToList();
+		});
 	}
+	navigateToList() {
+    browserHistory.push("/");
+  }
   render() {
     return (<div className="App">
       <Navbar>
       	<Nav className="pull-left">
-		      <NavItem eventKey={1}>
-            <Link className="nav-link" to="/">
-            	<i className="glyphicon glyphicon-home" />
-            </Link>
+		      <NavItem eventKey={1} onClick={this.navigateToList}>
+          	<i className="glyphicon glyphicon-home" />
           </NavItem>
         </Nav>
 		    <Navbar.Header>
@@ -157,7 +139,7 @@ class AddEdit extends Component {
 		      	<i className="glyphicon glyphicon-trash" />
 		      	Delete
 	      	</NavItem> : null}
-	      	<NavItem eventKey={2} onClick={this.handleSave}>
+	      	<NavItem eventKey={3} onClick={this.handleSave}>
 		      	<i className="glyphicon glyphicon-ok" />
 		      	Save
 	      	</NavItem>
@@ -165,10 +147,11 @@ class AddEdit extends Component {
 		  </Navbar>
       <div className="container">
       	<Well>
-          <Form>
+          <Form ref={ref => this.form=ref}>
             <FormGroup controlId="clientName">
-              <ControlLabel>Client Name</ControlLabel>
+              <ControlLabel>Client Name *</ControlLabel>
               <FormControl
+              	required={true}
               	value={this.state.clientName}
               	onChange={e => this.handleChangeValue(e, "clientName")} />
             </FormGroup>
@@ -176,8 +159,9 @@ class AddEdit extends Component {
             <Row>
             	<Col sm={6}>
 		            <FormGroup controlId="enquiryDate">
-		              <ControlLabel>Enquiry Date</ControlLabel>
+		              <ControlLabel>Enquiry Date *</ControlLabel>
 		              <DatePicker
+		              	required={true}
 		              	className="form-control"
 		              	dateFormat="DD MMM YYYY"
 		              	selected={this.state.enquiryDate || null}
@@ -204,8 +188,9 @@ class AddEdit extends Component {
             <Row>
             	<Col sm={6}>
 		            <FormGroup controlId="arrivalDate">
-		              <ControlLabel>Arrival Date</ControlLabel>
+		              <ControlLabel>Arrival Date *</ControlLabel>
 		              <DatePicker
+		              	required={true}
 		              	className="form-control"
 		              	dateFormat="DD MMM YYYY"
 		              	selected={this.state.arrivalDate || null}
@@ -214,8 +199,9 @@ class AddEdit extends Component {
             	</Col>
             	<Col sm={6}>
 	            	<FormGroup controlId="departureDate">
-		              <ControlLabel>Departure Date</ControlLabel>
+		              <ControlLabel>Departure Date *</ControlLabel>
 		              <DatePicker
+		              	required={true}
 		              	className="form-control"
 		              	dateFormat="DD MMM YYYY"
 		              	selected={this.state.departureDate || null}
@@ -303,6 +289,11 @@ class AddEdit extends Component {
           </Form>
         </Well>
       </div>
+      <Alert title="Validation Error"
+    			message={this.state.validationMessage}
+    			button1="Ok"
+    			show={Boolean(!this.state.isValid && this.state.validationMessage)}
+    			onClick1={() => this.setState({ validationMessage: "" })} />
     </div>);
   }
 }
