@@ -1,12 +1,21 @@
-const fs = window.require("fs");
-const { dialog } = window.require("electron").remote;
-// ^ https://github.com/electron/electron/issues/7300
 import { parse, stringify } from "csv";
-
 import { FIELDS, READABLE_FIELDS } from "./constants";
 import db from "./DB";
 
+let isElectron = false;
+let fs, dialog;
+
+if(window.require) {
+	isElectron = true;
+	fs = window.require("fs");
+	dialog = window.require("electron").remote.dialog;
+	// ^ https://github.com/electron/electron/issues/7300
+}
+
 export function exportCSV() {
+	if(!isElectron) {
+		return Promise.reject("Electron not found");
+	}
 	return new Promise((fulfill, reject) => {
 		db.read().then(records => {
 			stringify(records, function(err, output){
@@ -37,6 +46,9 @@ export function exportCSV() {
 }
 
 export function importCSV() {
+	if(!isElectron) {
+		return Promise.reject("Electron not found");
+	}
 	return new Promise((fulfill, reject) => {
 		dialog.showOpenDialog(
 			{

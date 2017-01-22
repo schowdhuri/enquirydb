@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { browserHistory, Link } from "react-router";
+import { hashHistory, Link } from "react-router";
 import moment from "moment";
 import {
   Nav,
@@ -58,7 +58,7 @@ class List extends Component {
     this.setState({ importAlert: "" });
   }
   navigateToAdd() {
-    browserHistory.push("/add");
+    hashHistory.push("/add");
   }
   render() {
     return (<div className="List">

@@ -3,7 +3,7 @@ import {
 	Router,
 	Route,
 	IndexRoute,
-	browserHistory
+  hashHistory
 } from 'react-router';
 import ReactDOM from 'react-dom';
 
@@ -14,7 +14,7 @@ import List from './List';
 import './index.css';
 
 ReactDOM.render((
-  <Router history={browserHistory}>
+  <Router history={hashHistory}>
     <Route path="/" component={App}>
 			<IndexRoute component={List} />
       <Route path="add" component={AddEdit}/>
