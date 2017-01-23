@@ -34,10 +34,13 @@ class AddEdit extends Component {
 			};
 		}, {
 			isValid: false,
-			validationMessage: ""
+			validationMessage: "",
+			awaitingDelete: false
 		});
 		this.loadDB = this.loadDB.bind(this);
 		this.handleChangeValue = this.handleChangeValue.bind(this);
+		this.handleCancelDelete = this.handleCancelDelete.bind(this);
+		this.handleConfirmDelete = this.handleConfirmDelete.bind(this);
 		this.handleDelete = this.handleDelete.bind(this);
 		this.handleSave = this.handleSave.bind(this);
 		this.navigateToList = this.navigateToList.bind(this);
@@ -78,11 +81,17 @@ class AddEdit extends Component {
 			});
 		}
 	}
+	handleCancelDelete() {
+		this.setState({ awaitingDelete: false });
+	}
+	handleConfirmDelete() {
+		this.setState({ awaitingDelete: true });
+	}
 	handleDelete() {
-		if(confirm("Are you sure you want to permanently delete this record?"))
-			db.delete(this.state.ref).then(() => {
-				this.navigateToList();
-			});
+		this.setState({ awaitingDelete: false });
+		db.delete(this.state.ref).then(() => {
+			this.navigateToList();
+		});
 	}
 	handleSave() {
 		const formNode = ReactDOM.findDOMNode(this.form);
@@ -132,10 +141,12 @@ class AddEdit extends Component {
 	          </NavItem>
 	        </Nav>
 			    <Navbar.Header>
-			      <Navbar.Brand>New Record</Navbar.Brand>
+			      <Navbar.Brand>
+			      	{this.state.ref ? "Edit Record" : "New Record"}
+		      	  </Navbar.Brand>
 			    </Navbar.Header>
 			    <Nav className="pull-right">
-			      {this.state.ref ? <NavItem eventKey={2} onClick={this.handleDelete}>
+			      {this.state.ref ? <NavItem eventKey={2} onClick={this.handleConfirmDelete}>
 			      	<i className="glyphicon glyphicon-trash" />
 			      	Delete
 		      	</NavItem> : null}
@@ -289,11 +300,20 @@ class AddEdit extends Component {
 	          </Form>
 	        </Well>
 	      </div>
-	      <Alert title="Validation Error"
-	    			message={this.state.validationMessage}
-	    			button1="Ok"
-	    			show={Boolean(!this.state.isValid && this.state.validationMessage)}
-	    			onClick1={() => this.setState({ validationMessage: "" })} />
+	      <Alert title="Insufficient data"
+			message={this.state.validationMessage}
+			button1="Ok"
+			show={Boolean(!this.state.isValid && this.state.validationMessage)}
+			onClick1={() => this.setState({ validationMessage: "" })} />
+
+			<Alert title="Warning"
+				message="Are you sure you want to permanently delete this record?"
+				button1="Yes"
+				button2="No"
+				show={this.state.awaitingDelete}
+				onClick1={this.handleDelete}
+				onClick2={this.handleCancelDelete} />
+			
 	    </div>);
   }
 }

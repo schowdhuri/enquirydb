@@ -18,6 +18,8 @@ class Alert extends Component {
 	}
 	close() {
 		this.setState({ show: false });
+		if(this.props.onHide)
+			this.props.onHide();
 	}
 	handleClick1() {
 		this.close();
@@ -34,8 +36,8 @@ class Alert extends Component {
 		} = this.props;
 		const { show } = this.state;
 		return (<div>
-			<Modal show={show} onHide={this.close}> 
-				<Modal.Header closeButton>
+			<Modal show={show} onHide={this.close} backdrop="static"> 
+				<Modal.Header>
 					<Modal.Title>{title}</Modal.Title>
 				</Modal.Header>
 
@@ -58,7 +60,8 @@ Alert.propTypes = {
 	button1: React.PropTypes.string,
 	button2: React.PropTypes.string,
 	onClick1: React.PropTypes.func,
-	onClick2: React.PropTypes.func
+	onClick2: React.PropTypes.func,
+	onHide: React.PropTypes.func
 };
 
 export default Alert;
